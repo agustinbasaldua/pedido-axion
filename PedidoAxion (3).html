@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Pedido Axion</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0ebe3;overscroll-behavior:none}
+.app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#f0ebe3}
+.hdr{background:#1c1409;padding:18px 20px 14px;flex-shrink:0}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start}
+.hdr-logo{font-family:'Fraunces',serif;font-size:11px;letter-spacing:3px;color:#7a6a50;text-transform:uppercase;margin-bottom:4px}
+.hdr-title{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:#f0ebe3;line-height:1}
+.hdr-title em{color:#e8c547;font-style:italic}
+.hdr-date{font-size:11px;color:#7a6a50;margin-top:6px}
+.hdr-btns{display:flex;gap:6px}
+.hdr-btn{background:rgba(255,255,255,.07);border:none;color:#f0ebe3;border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.hdr-btn:hover{background:rgba(255,255,255,.14)}
+.body{flex:1;overflow-y:auto;padding:16px}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#9a8870;font-weight:600;margin-bottom:10px}
+.user-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:20px}
+.user-card{background:#fff;border-radius:16px;padding:12px 10px 10px;cursor:pointer;border:2px solid transparent;transition:all .18s;position:relative}
+.user-card:hover:not(.no-quota):not(.ordered){border-color:#e8c547;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.user-card.ordered{background:#f0faf0;border-color:#5cb860}
+.user-card.no-quota{opacity:.55;cursor:default}
+.u-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:15px;font-weight:900;margin-bottom:6px}
+.u-name{font-size:12px;font-weight:600;color:#1c1409}
+.u-quota{font-size:10px;color:#9a8870;margin-top:1px}
+.u-bar{height:3px;background:#f0e8d8;border-radius:2px;margin-top:6px;overflow:hidden}
+.u-fill{height:100%;border-radius:2px;transition:width .5s}
+.u-badge{position:absolute;top:7px;right:7px;background:#5cb860;color:white;font-size:8px;font-weight:700;padding:2px 5px;border-radius:8px}
+.today-box{background:#1c1409;border-radius:18px;padding:14px 16px;margin-bottom:14px}
+.today-box-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.today-box-title{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:#f0ebe3}
+.today-count{background:#e8c547;color:#1c1409;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.today-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.today-row:last-child{border-bottom:none}
+.today-name{font-size:12px;font-weight:600;color:#e8c547;min-width:58px}
+.today-dish{font-size:12px;color:#c0b090;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.today-cat{font-size:10px;color:#6a5a40;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:6px;flex-shrink:0}
+.today-del{background:none;border:none;color:#ff7070;cursor:pointer;font-size:14px;padding:0 4px;flex-shrink:0}
+.action-row{display:flex;gap:8px;margin-bottom:6px}
+.wa-btn{flex:1;background:#25d366;color:white;border:none;border-radius:12px;padding:13px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s}
+.wa-btn:hover:not(:disabled){background:#1fbe59;transform:translateY(-1px)}
+.wa-btn:disabled{background:#c8c8c8;cursor:not-allowed;transform:none}
+.copy-btn{background:#fff;color:#1c1409;border:2px solid #e0d8cc;border-radius:12px;padding:13px 14px;font-size:18px;cursor:pointer;transition:all .18s}
+.copy-btn:hover:not(:disabled){border-color:#c8b890}
+.copy-btn:disabled{opacity:.4;cursor:not-allowed}
+.empty-st{text-align:center;padding:28px 0;color:#9a8870;font-size:13px}
+.empty-st div{font-size:32px;margin-bottom:8px}
+.back-btn{background:none;border:none;color:#9a8870;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:16px;font-family:'Plus Jakarta Sans',sans-serif}
+.order-greeting{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:#1c1409;margin-bottom:2px}
+.order-greeting em{color:#c97c30}
+.order-sub{font-size:12px;color:#9a8870;margin-bottom:18px}
+.cat-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{flex-shrink:0;background:#fff;border:2px solid transparent;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;color:#9a8870;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif}
+.menu-list{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.menu-item{background:#fff;border-radius:14px;padding:12px 14px;cursor:pointer;border:2px solid transparent;transition:all .15s;display:flex;gap:12px;align-items:flex-start}
+.menu-item:hover{border-color:#e8c547}
+.menu-item.selected{border-color:#c97c30;background:#fff9f0}
+.mi-radio{width:18px;height:18px;border-radius:50%;border:2px solid #d0c0a0;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center}
+.menu-item.selected .mi-radio{border-color:#c97c30;background:#c97c30}
+.mi-dot{width:7px;height:7px;border-radius:50%;background:white;display:none}
+.menu-item.selected .mi-dot{display:block}
+.mi-text{flex:1}
+.mi-name{font-size:14px;font-weight:600;color:#1c1409}
+.mi-desc{font-size:11px;color:#9a8870;margin-top:2px;line-height:1.4}
+.notes-input{width:100%;background:#fff;border:2px solid #e8dcc8;border-radius:12px;padding:11px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:#1c1409;margin-bottom:16px;resize:none;outline:none;transition:border-color .15s}
+.notes-input:focus{border-color:#c97c30}
+.confirm-btn{width:100%;background:#1c1409;color:#e8c547;border:none;border-radius:14px;padding:15px;font-family:'Fraunces',serif;font-size:19px;font-weight:700;cursor:pointer;transition:all .18s}
+.confirm-btn:hover:not(:disabled){background:#2d2010}
+.confirm-btn:disabled{background:#d0c8b8;color:#a09080;cursor:not-allowed}
+.admin-tabs{display:flex;gap:0;margin-bottom:18px;background:#fff;border-radius:12px;padding:3px}
+.atab{flex:1;background:none;border:none;border-radius:10px;padding:8px 4px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;color:#9a8870;transition:all .15s}
+.atab.active{background:#1c1409;color:#e8c547}
+.admin-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#1c1409;margin-bottom:3px}
+.admin-sub{font-size:11px;color:#9a8870;margin-bottom:12px}
+.dish-list{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.dish-row{background:#fff;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px}
+.dish-cat-pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
+.dish-name{font-size:12px;color:#1c1409;flex:1}
+.dish-del{background:none;border:none;color:#ff7070;cursor:pointer;font-size:15px;padding:0}
+.add-form{background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.add-input{border:2px solid #e8dcc8;border-radius:10px;padding:9px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none}
+.add-input:focus{border-color:#c97c30}
+.add-select{border:2px solid #e8dcc8;border-radius:10px;padding:9px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;background:white}
+.add-btn{background:#e8c547;color:#1c1409;border:none;border-radius:10px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif}
+.reset-menu-btn{background:none;border:2px solid #e8dcc8;color:#9a8870;border-radius:10px;padding:9px;width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;cursor:pointer}
+.quota-card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.qc-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:18px;font-weight:900;flex-shrink:0}
+.qc-info{flex:1}
+.qc-name{font-size:14px;font-weight:600;color:#1c1409}
+.qc-used{font-size:11px;color:#9a8870;margin-top:1px}
+.qc-bar{height:4px;background:#f0e8d8;border-radius:2px;margin-top:7px;overflow:hidden}
+.qc-fill{height:100%;border-radius:2px}
+.qc-num{font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:#c97c30}
+.reset-month-btn{width:100%;background:#fff5f0;color:#c97c30;border:2px solid #f0d0b8;border-radius:12px;padding:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.quota-card{position:relative}
+.qc-controls{display:flex;align-items:center;gap:6px;margin-top:6px}
+.qc-ctrl-btn{width:28px;height:28px;border-radius:8px;border:2px solid #e8dcc8;background:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#1c1409;flex-shrink:0;line-height:1}
+.qc-ctrl-btn:hover{background:#f5efe6;border-color:#c97c30}
+.qc-manual-input{width:52px;border:2px solid #e8dcc8;border-radius:8px;padding:4px 6px;font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#c97c30;text-align:center;outline:none}
+.qc-manual-input:focus{border-color:#c97c30}
+.qc-save-btn{flex:1;background:#e8c547;color:#1c1409;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif}
+.hist-day{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.hist-day-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hist-day-date{font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:#1c1409}
+.hist-day-count{font-size:11px;color:#9a8870;background:#f0e8d8;padding:2px 8px;border-radius:10px}
+.hist-row{display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid #f5ede0;font-size:12px}
+.hist-row:last-child{border-bottom:none}
+.hist-name{font-weight:600;color:#c97c30;min-width:60px}
+.hist-dish{color:#5a4a38;flex:1}
+.hist-notes{font-size:10px;color:#9a8870;font-style:italic}
+.download-btn{width:100%;background:#1c1409;color:#e8c547;border:none;border-radius:12px;padding:12px;font-family:'Fraunces',serif;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.download-btn:hover{background:#2d2010}
+.no-history{text-align:center;padding:24px 0;color:#9a8870;font-size:13px}
+.no-history div{font-size:28px;margin-bottom:6px}
+.wa-cfg{background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.wa-cfg input{border:2px solid #e8dcc8;border-radius:10px;padding:10px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none}
+.wa-cfg input:focus{border-color:#25d366}
+.wa-save{background:#25d366;color:white;border:none;border-radius:10px;padding:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer}
+.wa-preview{background:#fff;border-radius:12px;padding:12px;font-size:12px;color:#4a3a2a;line-height:1.6;white-space:pre-wrap;font-family:monospace;margin-top:12px}
+.nav{display:flex;background:#fff;border-top:1px solid #e8e0d4;padding:6px 0 2px;flex-shrink:0}
+.nav-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;color:#b0a090;font-size:9px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:color .15s}
+.nav-btn.active{color:#c97c30}
+.nav-icon{font-size:19px}
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:#1c1409;color:#f0ebe3;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.22);animation:sup .2s ease;white-space:nowrap;pointer-events:none}
+.toast.err{background:#b52b27}
+.toast.warn{background:#d4750a}
+.loading{text-align:center;padding:60px 16px;color:#9a8870;font-size:14px}
+.loading-icon{font-size:36px;display:block;margin-bottom:12px;animation:spin 1.5s linear infinite;display:inline-block}
+.status-bar{display:flex;align-items:center;gap:6px;font-size:11px;color:#9a8870;margin-bottom:14px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#5cb860;flex-shrink:0}
+.status-dot.syncing{background:#e8c547;animation:blink 1s infinite}
+.status-dot.error{background:#ff6b6b}
+@keyframes sup{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div>
+        <div class="hdr-logo">Bien Livianas</div>
+        <div class="hdr-title">Pedido <em>Axion</em></div>
+        <div class="hdr-date" id="hdr-date"></div>
+      </div>
+      <div class="hdr-btns">
+        <button class="hdr-btn" onclick="syncNow()" title="Actualizar">🔄</button>
+        <button class="hdr-btn" onclick="toggleAdmin()">⚙️</button>
+      </div>
+    </div>
+  </div>
+  <div class="body" id="main-body">
+    <div class="loading"><span class="loading-icon">🍽️</span><br>Conectando...</div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" id="nav-home" onclick="goHome()"><span class="nav-icon">🏠</span>Inicio</button>
+    <button class="nav-btn" id="nav-admin" onclick="goAdmin()"><span class="nav-icon">⚙️</span>Admin</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+const BIN_ID   = "69b0468e8d9bd565842d7008";
+const MASTER_KEY = "$2a$10$2.O2BdRmcFUZGzO6Tr5WXOQE9kr3A3X3Q0/2h/svmjxwThIW.GiTm";
+const BIN_URL  = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const HEADERS  = { "Content-Type": "application/json", "X-Master-Key": MASTER_KEY, "X-Bin-Versioning": "false" };
+
+const TEAMMATES   = ["Jonatan","Esteban","Damian","Julio","Agustin","Javier"];
+const MONTHLY_QUOTA = 15;
+
+const DEFAULT_MENU = [
+  {id:1,category:"Ensaladas",name:"Bien Liviana Veggie",desc:"Lentejas, zanahoria, repollo, chauchas, remolachas, tomates, choclo, huevo."},
+  {id:2,category:"Ensaladas",name:"Bien Liviana",desc:"Pollo/atún, lechuga, tomates, zanahoria, huevo."},
+  {id:3,category:"Ensaladas",name:'"19"',desc:"Pollo/atún, rúcula, zanahoria, queso en cubos, huevo, palta."},
+  {id:4,category:"Ensaladas",name:"Caprese",desc:"Pollo/atún, pasta corta, lechuga, tomates asados, queso en cubo, aceitunas."},
+  {id:5,category:"Ensaladas",name:"Cesar",desc:"Pollo, lechuga, queso rayado."},
+  {id:6,category:"Ensaladas",name:"Mediterránea",desc:"Pollo/atún, rúcula, huevo, tomates asados, cebolla y morrones salteados."},
+  {id:7,category:"Ensaladas",name:"Pollo y Champi",desc:"Pollo, lechuga, tomates asados, queso en cubos, champiñón."},
+  {id:8,category:"Rolls",name:"Vegetariano",desc:"Rúcula, zanahoria, huevo, choclo, tomate, berenjena grillé, cebolla salteada, aderezo de hierbas."},
+  {id:9,category:"Rolls",name:"Veggie",desc:"Queso, acelga, salsa blanca, cebolla, zapallitos, calabaza, champiñón."},
+  {id:10,category:"Rolls",name:"Calabaza",desc:"Queso, acelga, salsa blanca, cebolla, calabaza, nuez, roquefort."},
+  {id:11,category:"Rolls",name:"Clásico",desc:"Pollo/atún, lechuga, zanahoria, tomate, aderezo de hierbas."},
+  {id:12,category:"Rolls",name:"Latino",desc:"Pollo, lechuga, tomates, cebolla cruda, palta, aderezo de hierbas."},
+  {id:13,category:"Rolls",name:"Verde",desc:"Pollo, rúcula, tomates asados, dip de palta-queso crema-ciboulette."},
+  {id:14,category:"Rolls",name:"Cesar Roll",desc:"Pollo, lechuga, queso rayado, aderezo cesar."},
+  {id:15,category:"Rolls",name:"Pollo Guak",desc:"Rúcula, lechuga, pollo, guacamole, queso crema."},
+  {id:16,category:"Rolls",name:"Criollo",desc:"Queso, pollo, cebolla y morrones salteados, tomates asados."},
+  {id:17,category:"Rolls",name:"Pollo y Vegetales",desc:"Queso, pollo, cebolla y morrones salteados, zapallitos, calabaza y berenjena grillé."},
+  {id:18,category:"Rolls",name:"Atún",desc:"Zanahoria, huevo, queso en cubos, aderezo hierbas, atún."},
+  {id:19,category:"Viandas",name:"Arroz Oriental",desc:"Arroz integral, salteado de morrón, cebolla, zanahoria, zuchini, salsa de soja, brotes de soja, trocitos de pollo."},
+  {id:20,category:"Viandas",name:"Pastel de Calabaza",desc:"Calabaza, pollo con cebolla y salsa blanca. Choclo y queso rayado."},
+  {id:21,category:"Viandas",name:"Canelones",desc:"3 canelones de acelga y ricota con salsa fileto y queso rayado."},
+  {id:22,category:"Viandas",name:"Pasta Broc",desc:"Pasta corta, salteado de berenjena, cebolla, morrón y albahaca, tomates asados, ricota, queso rayado y brócoli."},
+  {id:23,category:"Viandas",name:"Tarta",desc:"Tarta de verdura sola o con mini ensalada."},
+  {id:24,category:"Viandas",name:"Lasagna",desc:"De acelga y pollo con salsa fileto y queso rayado."},
+  {id:25,category:"Por Encargue",name:"Ñoquis con salsa fileto",desc:""},
+  {id:26,category:"Por Encargue",name:"Cazuela/guisado veggie",desc:""},
+  {id:27,category:"Por Encargue",name:"Lasagna de berenjena y ricota",desc:""},
+  {id:28,category:"Por Encargue",name:"Vegetal relleno",desc:""},
+];
+
+const CAT_ICONS  = {"Ensaladas":"🥗","Rolls":"🌯","Viandas":"🍱","Por Encargue":"📋"};
+const CAT_COLORS = {
+  "Ensaladas":{bg:"#e8f5e9",accent:"#4caf50",text:"#2e7d32"},
+  "Rolls":{bg:"#fff8e1",accent:"#ffc107",text:"#e65100"},
+  "Viandas":{bg:"#fce4ec",accent:"#e91e63",text:"#880e4f"},
+  "Por Encargue":{bg:"#e8eaf6",accent:"#7c83db",text:"#3949ab"},
+};
+const AVA_COLORS = [
+  {bg:"#fde68a",text:"#92400e"},
+  {bg:"#c7d2fe",text:"#3730a3"},
+  {bg:"#bbf7d0",text:"#065f46"},
+  {bg:"#fecaca",text:"#991b1b"},
+  {bg:"#fed7aa",text:"#9a3412"},
+  {bg:"#e0f2fe",text:"#0369a1"},
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let shared = null;
+let screen = "home";
+let currentUser = null;
+let selectedItem = null;
+let notes = "";
+let activeCategory = "Ensaladas";
+let adminTab = "menu";
+let toastTimer = null;
+let autoRefresh = null;
+let syncStatus = "ok"; // ok | syncing | error
+
+function todayStr(){ return new Date().toLocaleDateString("es-AR"); }
+function monthKey(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}`; }
+
+function freshData(){
+  const quotas = {};
+  TEAMMATES.forEach(n => { quotas[n] = MONTHLY_QUOTA; });
+  return { todayOrders:{}, quotas, menu:[...DEFAULT_MENU], whatsappNumber:"", monthKey:monthKey(), todayDate:todayStr(), history:[] };
+}
+
+// ── JSONBIN API ───────────────────────────────────────────────
+async function fetchRemote(){
+  const r = await fetch(BIN_URL+"/latest", { headers: MASTER_KEY ? {"X-Master-Key":MASTER_KEY} : {} });
+  if(!r.ok) throw new Error("fetch error "+r.status);
+  const j = await r.json();
+  return j.record;
+}
+
+async function pushRemote(data){
+  const r = await fetch(BIN_URL, {
+    method: "PUT",
+    headers: HEADERS,
+    body: JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error("push error "+r.status);
+}
+
+// ── SYNC ─────────────────────────────────────────────────────
+async function syncNow(){
+  syncStatus = "syncing";
+  updateSyncBtn();
+  try {
+    let remote = await fetchRemote();
+
+    // If bin is empty or missing keys, initialize
+    if(!remote || !remote.quotas){
+      remote = freshData();
+      await pushRemote(remote);
+    }
+
+    // Month reset
+    if(remote.monthKey !== monthKey()){
+      remote.monthKey = monthKey();
+      remote.todayDate = todayStr();
+      remote.todayOrders = {};
+      TEAMMATES.forEach(n => { remote.quotas[n] = MONTHLY_QUOTA; });
+      await pushRemote(remote);
+    }
+
+    // Day reset (new day, same month)
+    if(remote.todayDate !== todayStr()){
+      // Archive yesterday's orders into history before resetting
+      if(remote.todayDate && Object.keys(remote.todayOrders||{}).length > 0){
+        if(!remote.history) remote.history = [];
+        remote.history.unshift({ date: remote.todayDate, orders: {...remote.todayOrders} });
+        if(remote.history.length > 60) remote.history = remote.history.slice(0,60);
+      }
+      remote.todayDate = todayStr();
+      remote.todayOrders = {};
+      await pushRemote(remote);
+    }
+
+    // Ensure all teammates have quota entry
+    TEAMMATES.forEach(n => {
+      if(remote.quotas[n] === undefined) remote.quotas[n] = MONTHLY_QUOTA;
+    });
+
+    shared = remote;
+    syncStatus = "ok";
+  } catch(e){
+    syncStatus = "error";
+    if(!shared) shared = freshData();
+    showToast("Sin conexión — mostrando datos locales","warn");
+  }
+  updateSyncBtn();
+  render();
+}
+
+function updateSyncBtn(){
+  const btn = document.querySelector(".hdr-btn[onclick='syncNow()']");
+  if(!btn) return;
+  if(syncStatus==="syncing"){ btn.style.opacity="0.4"; btn.textContent="🔄"; }
+  else if(syncStatus==="error"){ btn.style.opacity="1"; btn.textContent="⚠️"; }
+  else { btn.style.opacity="1"; btn.textContent="🔄"; }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init(){
+  document.getElementById("hdr-date").textContent = "📅 " + new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
+  await syncNow();
+  // Auto-refresh every 20s when on home screen
+  autoRefresh = setInterval(async ()=>{
+    if(screen==="home") await syncNow();
+  }, 20000);
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function goHome(){ screen="home"; render(); }
+function goAdmin(){ screen="admin"; adminTab="menu"; render(); }
+function toggleAdmin(){ screen = screen==="admin"?"home":"admin"; render(); }
+function setNavActive(){
+  document.getElementById("nav-home").className="nav-btn"+(screen!=="admin"?" active":"");
+  document.getElementById("nav-admin").className="nav-btn"+(screen==="admin"?" active":"");
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function render(){
+  if(!shared){ return; }
+  setNavActive();
+  const body = document.getElementById("main-body");
+  if(screen==="home") renderHome(body);
+  else if(screen==="order") renderOrder(body);
+  else if(screen==="admin") renderAdmin(body);
+}
+
+// HOME
+function renderHome(body){
+  const todayKeys = Object.keys(shared.todayOrders);
+
+  let html = `<div class="status-bar"><div class="status-dot${syncStatus==='syncing'?' syncing':syncStatus==='error'?' error':''}"></div>
+    <span>${syncStatus==='syncing'?'Sincronizando...':syncStatus==='error'?'Sin conexión':'Sincronizado · se actualiza cada 20s'}</span></div>`;
+
+  html += `<div class="section-label">¿Quién pedís hoy?</div><div class="user-grid">`;
+  TEAMMATES.forEach((name,i)=>{
+    const quota = shared.quotas[name] ?? MONTHLY_QUOTA;
+    const ordered = !!shared.todayOrders[name];
+    const noQ = quota<=0 && !ordered;
+    const col = AVA_COLORS[i%AVA_COLORS.length];
+    const pct = (quota/MONTHLY_QUOTA)*100;
+    html += `<div class="user-card${ordered?" ordered":""}${noQ?" no-quota":""}" onclick="selectUser('${name}')">`;
+    if(ordered) html += `<div class="u-badge">✓</div>`;
+    html += `<div class="u-avatar" style="background:${col.bg};color:${col.text}">${name[0]}</div>`;
+    html += `<div class="u-name">${name}</div>`;
+    html += `<div class="u-quota">${quota} vianda${quota!==1?"s":""}</div>`;
+    html += `<div class="u-bar"><div class="u-fill" style="width:${pct}%;background:${pct<25?"#ff6b6b":"#e8c547"}"></div></div>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+
+  if(todayKeys.length){
+    html += `<div class="today-box"><div class="today-box-hdr">
+      <span class="today-box-title">Pedidos de hoy</span>
+      <span class="today-count">${todayKeys.length} / ${TEAMMATES.length}</span>
+    </div>`;
+    todayKeys.forEach(name=>{
+      const o = shared.todayOrders[name];
+      html += `<div class="today-row">
+        <span class="today-name">${name}</span>
+        <span class="today-dish">${o.dish}${o.notes?" · "+o.notes:""}</span>
+        <span class="today-cat">${CAT_ICONS[o.category]||""}</span>
+        <button class="today-del" onclick="cancelOrder('${name}')">✕</button>
+      </div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div class="empty-st"><div>🛒</div>Sin pedidos todavía<br><small style="color:#b8a898;margin-top:4px;display:block">Cada uno toca su nombre y elige su plato</small></div>`;
+  }
+
+  html += `<div class="action-row">
+    <button class="wa-btn" onclick="openWhatsApp()" ${!todayKeys.length?"disabled":""}>
+      <span style="font-size:17px">💬</span> Enviar por WhatsApp
+    </button>
+    <button class="copy-btn" onclick="copyMessage()" ${!todayKeys.length?"disabled":""} title="Copiar mensaje">📋</button>
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+// ORDER
+function renderOrder(body){
+  const quota = shared.quotas[currentUser] ?? MONTHLY_QUOTA;
+  const categories = [...new Set(shared.menu.map(d=>d.category))];
+
+  let html = `<button class="back-btn" onclick="goHome()">← Volver</button>`;
+  html += `<div class="order-greeting">Hola, <em>${currentUser}</em></div>`;
+  html += `<div class="order-sub">Te quedan <strong>${quota}</strong> viandas este mes</div>`;
+
+  html += `<div class="cat-tabs">`;
+  categories.forEach(cat=>{
+    const col = CAT_COLORS[cat]||{bg:"#f5f5f5",accent:"#999",text:"#555"};
+    const active = activeCategory===cat;
+    html += `<button class="cat-tab${active?" active":""}" style="${active?`background:${col.bg};border-color:${col.accent};color:${col.text}`:""}" onclick="setCategory('${cat}')">${CAT_ICONS[cat]} ${cat}</button>`;
+  });
+  html += `</div><div class="menu-list">`;
+
+  shared.menu.filter(d=>d.category===activeCategory).forEach(item=>{
+    const sel = selectedItem && selectedItem.id===item.id;
+    html += `<div class="menu-item${sel?" selected":""}" onclick="selectItem(${item.id})">
+      <div class="mi-radio"><div class="mi-dot"></div></div>
+      <div class="mi-text">
+        <div class="mi-name">${item.name}</div>
+        ${item.desc?`<div class="mi-desc">${item.desc}</div>`:""}
+      </div></div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="section-label">Aclaraciones (opcional)</div>`;
+  html += `<textarea class="notes-input" id="notes-ta" rows="2" placeholder="Sin sal, extra salsa, sin cebolla..." oninput="notes=this.value">${notes}</textarea>`;
+  html += `<button class="confirm-btn" onclick="confirmOrder()" ${!selectedItem?"disabled":""}>Confirmar pedido ✓</button>`;
+
+  body.innerHTML = html;
+}
+
+function setCategory(cat){ activeCategory=cat; render(); }
+
+function selectItem(id){
+  selectedItem = shared.menu.find(d=>d.id===id)||null;
+  render();
+  const ta = document.getElementById("notes-ta");
+  if(ta){ ta.value=notes; }
+}
+
+async function confirmOrder(){
+  if(!selectedItem) return;
+  const user = currentUser;
+  // Pull latest before writing to avoid overwriting others
+  let data;
+  try { data = await fetchRemote(); } catch(e){ data = shared; }
+  if(!data || !data.quotas) data = shared;
+
+  if((data.quotas[user]??MONTHLY_QUOTA) <= 0){ showToast("Sin viandas disponibles!","err"); return; }
+
+  const notesVal = (document.getElementById("notes-ta")||{}).value || notes;
+  data.todayOrders[user] = {
+    dish: selectedItem.name,
+    category: selectedItem.category,
+    notes: notesVal,
+    time: new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}),
+  };
+  data.quotas[user] = (data.quotas[user]??MONTHLY_QUOTA) - 1;
+
+  try {
+    await pushRemote(data);
+    shared = data;
+    showToast(`Pedido de ${user} registrado! ✓`);
+    setTimeout(()=>{ screen="home"; currentUser=null; selectedItem=null; notes=""; render(); }, 900);
+  } catch(e){
+    showToast("Error al guardar, reintentá","err");
+  }
+}
+
+async function cancelOrder(name){
+  let data;
+  try { data = await fetchRemote(); } catch(e){ data = shared; }
+  if(data.todayOrders[name]){
+    delete data.todayOrders[name];
+    if((data.quotas[name]??0) < MONTHLY_QUOTA) data.quotas[name] = (data.quotas[name]??0)+1;
+    try { await pushRemote(data); shared=data; }
+    catch(e){ showToast("Error al cancelar","err"); return; }
+  }
+  showToast(`Pedido de ${name} cancelado`,"warn");
+  render();
+}
+
+function selectUser(name){
+  const quota = shared.quotas[name]??MONTHLY_QUOTA;
+  if(shared.todayOrders[name]){ showToast(`${name} ya pidió hoy`,"warn"); return; }
+  if(quota<=0){ showToast(`${name} sin viandas disponibles`,"err"); return; }
+  currentUser=name; selectedItem=null; notes=""; activeCategory="Ensaladas"; screen="order"; render();
+}
+
+// ADMIN
+function renderAdmin(body){
+  let html = `<button class="back-btn" onclick="goHome()">← Volver</button>`;
+  html += `<div class="admin-tabs">`;
+  [["menu","📋 Menú"],["stock","📊 Stock"],["hist","📅 Historial"],["wa","💬 WhatsApp"]].forEach(([k,l])=>{
+    html += `<button class="atab${adminTab===k?" active":""}" onclick="setAdminTab('${k}')">${l}</button>`;
+  });
+  html += `</div>`;
+
+  if(adminTab==="menu"){
+    html += `<div class="admin-title">Menú</div><div class="admin-sub">Agregá o eliminá platos</div><div class="dish-list">`;
+    shared.menu.forEach(d=>{
+      const col = CAT_COLORS[d.category]||{bg:"#eee",text:"#555"};
+      html += `<div class="dish-row">
+        <span class="dish-cat-pill" style="background:${col.bg};color:${col.text}">${CAT_ICONS[d.category]||""}</span>
+        <span class="dish-name">${d.name}</span>
+        <button class="dish-del" onclick="removeDish(${d.id})">✕</button>
+      </div>`;
+    });
+    html += `</div><div class="add-form">
+      <input class="add-input" id="new-name" placeholder="Nombre del plato *"/>
+      <input class="add-input" id="new-desc" placeholder="Descripción (opcional)"/>
+      <select class="add-select" id="new-cat">
+        ${["Ensaladas","Rolls","Viandas","Por Encargue"].map(c=>`<option>${c}</option>`).join("")}
+      </select>
+      <button class="add-btn" onclick="addDish()">+ Agregar plato</button>
+    </div>
+    <button class="reset-menu-btn" onclick="resetMenu()">↺ Restablecer menú original</button>`;
+  }
+
+  if(adminTab==="stock"){
+    html += `<div class="admin-title">Stock mensual</div><div class="admin-sub">Abono de ${MONTHLY_QUOTA} viandas por persona — editá manualmente si es necesario</div>`;
+    TEAMMATES.forEach((name,i)=>{
+      const quota = shared.quotas[name]??MONTHLY_QUOTA;
+      const col = AVA_COLORS[i%AVA_COLORS.length];
+      const pct = (quota/MONTHLY_QUOTA)*100;
+      const used = MONTHLY_QUOTA-quota;
+      html += `<div class="quota-card">
+        <div class="qc-avatar" style="background:${col.bg};color:${col.text}">${name[0]}</div>
+        <div class="qc-info">
+          <div class="qc-name">${name}</div>
+          <div class="qc-used">${used} usada${used!==1?"s":""} de ${MONTHLY_QUOTA}</div>
+          <div class="qc-bar"><div class="qc-fill" style="width:${pct}%;background:${pct<25?"#ff6b6b":"#5cb860"}"></div></div>
+          <div class="qc-controls">
+            <button class="qc-ctrl-btn" onclick="adjustQuota('${name}',-1)">−</button>
+            <input class="qc-manual-input" id="qi-${name}" type="number" min="0" max="99" value="${quota}"/>
+            <button class="qc-ctrl-btn" onclick="adjustQuota('${name}',1)">+</button>
+            <button class="qc-save-btn" onclick="saveQuota('${name}')">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `<button class="reset-month-btn" onclick="resetMonth()">🔄 Resetear todos a ${MONTHLY_QUOTA} viandas</button>`;
+  }
+
+  if(adminTab==="hist"){
+    const history = shared.history||[];
+    html += `<div class="admin-title">Historial de pedidos</div><div class="admin-sub">Pedidos registrados por fecha</div>`;
+    if(history.length){
+      html += `<button class="download-btn" onclick="downloadHistory()">⬇️ Descargar historial completo</button>`;
+      history.forEach(day=>{
+        const dayOrders = Object.entries(day.orders||{});
+        html += `<div class="hist-day">
+          <div class="hist-day-hdr">
+            <span class="hist-day-date">📅 ${day.date}</span>
+            <span class="hist-day-count">${dayOrders.length} pedido${dayOrders.length!==1?"s":""}</span>
+          </div>`;
+        dayOrders.forEach(([name,o])=>{
+          html += `<div class="hist-row">
+            <span class="hist-name">${name}</span>
+            <span class="hist-dish">${o.dish}</span>
+            ${o.notes?`<span class="hist-notes">${o.notes}</span>`:""}
+          </div>`;
+        });
+        html += `</div>`;
+      });
+    } else {
+      html += `<div class="no-history"><div>📭</div>Todavía no hay historial guardado.<br><small style="color:#b8a898">Los pedidos se archivan automáticamente cada día.</small></div>`;
+    }
+  }
+
+  if(adminTab==="wa"){
+    html += `<div class="admin-title">WhatsApp</div><div class="admin-sub">Número de la rotisería (con código de país)</div>
+    <div class="wa-cfg">
+      <input id="wa-input" placeholder="Ej: 5491112345678" value="${shared.whatsappNumber||""}"/>
+      <button class="wa-save" onclick="saveWA()">💾 Guardar número</button>
+    </div>`;
+    const msg = buildMessage();
+    if(msg){
+      html += `<div class="admin-sub" style="margin-top:14px">Vista previa del mensaje de hoy:</div>`;
+      html += `<div class="wa-preview">${msg.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>`;
+    }
+  }
+
+  body.innerHTML = html;
+}
+
+function setAdminTab(tab){ adminTab=tab; render(); }
+
+function adjustQuota(name, delta){
+  const input = document.getElementById("qi-"+name);
+  if(!input) return;
+  let val = parseInt(input.value)||0;
+  val = Math.max(0, Math.min(99, val+delta));
+  input.value = val;
+}
+
+async function saveQuota(name){
+  const input = document.getElementById("qi-"+name);
+  if(!input) return;
+  const val = Math.max(0, Math.min(99, parseInt(input.value)||0));
+  let data;
+  try { data = await fetchRemote(); } catch(e){ data = shared; }
+  data.quotas[name] = val;
+  try {
+    await pushRemote(data);
+    shared = data;
+    showToast(`Stock de ${name} actualizado a ${val} ✓`);
+    render();
+  } catch(e){ showToast("Error al guardar","err"); }
+}
+
+function downloadHistory(){
+  const history = shared.history||[];
+  if(!history.length){ showToast("Sin historial para descargar","warn"); return; }
+  let csv = "Fecha,Nombre,Plato,Aclaración,Hora\n";
+  history.forEach(day=>{
+    Object.entries(day.orders||{}).forEach(([name,o])=>{
+      const notes = (o.notes||"").replace(/,/g,";");
+      const dish = (o.dish||"").replace(/,/g,";");
+      csv += `${day.date},${name},${dish},${notes},${o.time||""}\n`;
+    });
+  });
+  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download="historial_pedidos_axion.csv";
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast("Historial descargado ✓");
+}
+
+async function removeDish(id){
+  shared.menu = shared.menu.filter(d=>d.id!==id);
+  await pushRemote(shared); render();
+}
+
+async function addDish(){
+  const name = (document.getElementById("new-name")||{}).value?.trim();
+  if(!name){ showToast("Ingresá el nombre","err"); return; }
+  const desc = (document.getElementById("new-desc")||{}).value?.trim()||"";
+  const category = (document.getElementById("new-cat")||{}).value||"Ensaladas";
+  shared.menu.push({id:Date.now(),name,desc,category});
+  await pushRemote(shared); showToast("Plato agregado ✓"); render();
+}
+
+async function resetMenu(){
+  if(!confirm("¿Restablecer el menú original?")) return;
+  shared.menu = [...DEFAULT_MENU];
+  await pushRemote(shared); showToast("Menú restablecido ✓"); render();
+}
+
+async function resetMonth(){
+  if(!confirm("¿Resetear el abono mensual? (15 viandas por persona)")) return;
+  TEAMMATES.forEach(n=>{ shared.quotas[n]=MONTHLY_QUOTA; });
+  shared.todayOrders={};
+  shared.monthKey=monthKey();
+  shared.todayDate=todayStr();
+  await pushRemote(shared); showToast("Abono reseteado ✓"); render();
+}
+
+async function saveWA(){
+  const val = (document.getElementById("wa-input")||{}).value?.trim()||"";
+  shared.whatsappNumber = val;
+  await pushRemote(shared); showToast("Número guardado ✓"); render();
+}
+
+// MESSAGE
+function buildMessage(){
+  const orders = shared.todayOrders;
+  const keys = Object.keys(orders);
+  if(!keys.length) return null;
+  const date = new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
+  let msg = `🍽️ *Pedido del ${date}*\n\n`;
+  keys.forEach(name=>{
+    const o = orders[name];
+    msg += `• *${name}*: ${o.dish}`;
+    if(o.notes) msg += ` _(${o.notes})_`;
+    msg += "\n";
+  });
+  msg += `\n_Total: ${keys.length} vianda${keys.length!==1?"s":""}_\n¡Gracias! 🙌`;
+  return msg;
+}
+
+function openWhatsApp(){
+  const msg = buildMessage(); if(!msg) return;
+  const number = (shared.whatsappNumber||"").replace(/\D/g,"");
+  window.open(number?`https://wa.me/${number}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank");
+}
+
+function copyMessage(){
+  const msg = buildMessage(); if(!msg) return;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(msg).then(()=>showToast("Mensaje copiado! 📋")).catch(()=>fallbackCopy(msg));
+  } else { fallbackCopy(msg); }
+}
+
+function fallbackCopy(text){
+  const ta = document.createElement("textarea");
+  ta.value=text; ta.style.cssText="position:fixed;opacity:0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); showToast("Mensaje copiado! 📋"); }
+  catch(e){ showToast("No se pudo copiar","err"); }
+  document.body.removeChild(ta);
+}
+
+function showToast(msg,type="ok"){
+  const ex=document.getElementById("toast-el"); if(ex) ex.remove();
+  if(toastTimer) clearTimeout(toastTimer);
+  const t=document.createElement("div");
+  t.id="toast-el"; t.className="toast"+(type!=="ok"?" "+type:""); t.textContent=msg;
+  document.body.appendChild(t);
+  toastTimer=setTimeout(()=>t.remove(),2800);
+}
+
+init();
+</script>
+</body>
+</html>
