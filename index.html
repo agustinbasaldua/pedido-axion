@@ -118,6 +118,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0ebe3;overscroll-be
 .download-btn:hover{background:#2d2010}
 .no-history{text-align:center;padding:24px 0;color:#9a8870;font-size:13px}
 .no-history div{font-size:28px;margin-bottom:6px}
+.picker-box{background:#fff;border-radius:16px;padding:14px;margin-bottom:14px;border:2px solid #e8dcc8}
+.picker-box-title{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#9a8870;font-weight:600;margin-bottom:10px}
+.picker-grid{display:flex;flex-wrap:wrap;gap:7px}
+.picker-btn{flex:1;min-width:80px;background:#f5efe6;border:2px solid transparent;border-radius:12px;padding:8px 6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:#5a4a38;cursor:pointer;text-align:center;transition:all .15s}
+.picker-btn:hover{border-color:#e8c547}
+.picker-btn.selected{background:#1c1409;color:#e8c547;border-color:#1c1409}
+.picker-btn.clear{background:#fff5f0;color:#c97c30;border-color:#f0d0b8;min-width:auto;flex:0}
+.courier-banner{background:linear-gradient(135deg,#1c1409,#3d2b0e);border-radius:16px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.courier-icon{font-size:28px;flex-shrink:0}
+.courier-info{flex:1}
+.courier-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#7a6a50;font-weight:600}
+.courier-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:#e8c547;line-height:1.1}
+.courier-sub{font-size:11px;color:#9a7a50;margin-top:2px}
+.courier-clear{background:rgba(255,255,255,.08);border:none;color:#9a7a50;border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0}
 .wa-cfg{background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .wa-cfg input{border:2px solid #e8dcc8;border-radius:10px;padding:10px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none}
 .wa-cfg input:focus{border-color:#25d366}
@@ -240,7 +254,7 @@ function monthKey(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth
 function freshData(){
   const quotas = {};
   TEAMMATES.forEach(n => { quotas[n] = MONTHLY_QUOTA; });
-  return { todayOrders:{}, quotas, menu:[...DEFAULT_MENU], whatsappNumber:"", monthKey:monthKey(), todayDate:todayStr(), history:[] };
+  return { todayOrders:{}, quotas, menu:[...DEFAULT_MENU], whatsappNumber:"", monthKey:monthKey(), todayDate:todayStr(), history:[], courier:null };
 }
 
 // ── JSONBIN API ───────────────────────────────────────────────
@@ -292,6 +306,7 @@ async function syncNow(){
       }
       remote.todayDate = todayStr();
       remote.todayOrders = {};
+      remote.courier = null;
       await pushRemote(remote);
     }
 
@@ -387,6 +402,26 @@ function renderHome(body){
       </div>`;
     });
     html += `</div>`;
+
+    // Courier section
+    if(shared.courier){
+      html += `<div class="courier-banner">
+        <div class="courier-icon">🛵</div>
+        <div class="courier-info">
+          <div class="courier-label">Va a buscar el pedido</div>
+          <div class="courier-name">${shared.courier}</div>
+          <div class="courier-sub">Avisale cuando esté listo</div>
+        </div>
+        <button class="courier-clear" onclick="setCourier(null)">Cambiar</button>
+      </div>`;
+    } else {
+      html += `<div class="picker-box">
+        <div class="picker-box-title">¿Quién busca el pedido hoy?</div>
+        <div class="picker-grid">
+          ${TEAMMATES.map(n=>`<button class="picker-btn" onclick="setCourier('${n}')">${n}</button>`).join("")}
+        </div>
+      </div>`;
+    }
   } else {
     html += `<div class="empty-st"><div>🛒</div>Sin pedidos todavía<br><small style="color:#b8a898;margin-top:4px;display:block">Cada uno toca su nombre y elige su plato</small></div>`;
   }
@@ -671,6 +706,18 @@ async function saveWA(){
   await pushRemote(shared); showToast("Número guardado ✓"); render();
 }
 
+async function setCourier(name){
+  let data;
+  try { data = await fetchRemote(); } catch(e){ data = shared; }
+  data.courier = name;
+  try {
+    await pushRemote(data);
+    shared = data;
+    if(name) showToast(`${name} va a buscar el pedido 🛵`);
+    render();
+  } catch(e){ showToast("Error al guardar","err"); }
+}
+
 // MESSAGE
 function buildMessage(){
   const orders = shared.todayOrders;
@@ -684,7 +731,9 @@ function buildMessage(){
     if(o.notes) msg += ` _(${o.notes})_`;
     msg += "\n";
   });
-  msg += `\n_Total: ${keys.length} vianda${keys.length!==1?"s":""}_\n¡Gracias! 🙌`;
+  msg += `\n_Total: ${keys.length} vianda${keys.length!==1?"s":""}_`;
+  if(shared.courier) msg += `\n🛵 _Busca el pedido: *${shared.courier}*_`;
+  msg += `\n¡Gracias! 🙌`;
   return msg;
 }
 
